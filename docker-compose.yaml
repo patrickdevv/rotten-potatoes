@@ -1,53 +1,38 @@
-version: "3"  # optional since v1.27.0
-
-services:
-  web:
-    image: patrickdevv/rotten-potatoes
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      APP_ENV: "prod"
-      APP_DEBUG: "False"
-      APP_PORT: 5000
-      MONGODB_DATABASE: admin
-      MONGODB_USERNAME: mongouser
-      MONGODB_PASSWORD: mongopwd
-      MONGODB_HOSTNAME: mongodb
-    volumes:
-      - appdata:/var/www
-    depends_on:
-      - mongo
-    networks:
-      - frontend
-      - backend
-    
-  mongo:
-    image: mongo:4.4.3
-    container_name: mongodb
-    restart: unless-stopped
-    command: mongod --auth
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: mongouser
-      MONGO_INITDB_ROOT_PASSWORD: mongopwd
-      MONGO_INITDB_DATABASE: admin
-      MONGODB_DATA_DIR: /data/db
-      MONDODB_LOG_DIR: /dev/null
-      MONGODB_HOST: mongodb
-      MONGODB_PORT: "27017:27017"
-    volumes:
-      - mongodbdata:/data/db
-    networks:
-      - backend
-
-networks:
-  frontend:
-    driver: bridge
-  backend:
-    driver: bridge
+version: '3.8'
 
 volumes:
   mongodbdata:
-    driver: local
-  appdata:
-    driver: local
+
+networks:
+  backend_net:
+    driver: bridge
+
+services:
+  api:
+    image: patrickdevv/rotten-potatoes:v1
+    ports:
+      - 5000:5000
+    networks:
+      - backend_net
+    depends_on:
+      - mongodb
+    environment:
+      MONGODB_DB: admin
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      MONGODB_USERNAME: mongouser
+      MONGODB_PASSWORD: mongopwd
+
+  mongodb:
+    image: mongo:4.4.3
+    container_name: mongodb_rotten
+    ports:
+      - 27017:27017
+    networks:
+      - backend_net
+    volumes:
+      - mongodbdata:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongouser
+      MONGO_INITDB_ROOT_PASSWORD: mongopwd
+      MONGO_INITDB_ROOT_DATABASE: admin
